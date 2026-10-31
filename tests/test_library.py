@@ -82,6 +82,8 @@ class LibraryTests(unittest.TestCase):
         self.assertEqual(len(self.library.search(['1girl', 'blue_eyes'])), 2)
         self.assertEqual(len(self.library.search(['girl'])), 0)
         self.assertEqual(len(self.library.search(folder=str(self.images / 'sub'))), 1)
+        # This spelling is not normalized: scanner paths *are* normalized.
+        self.assertEqual(len(self.library.search(folder=str(self.images / 'other' / '..' / 'sub'))), 1)
         self.assertEqual(len(self.library.search(folder=str(self.images / 'su'))), 0)
 
     def test_similar_images_rank_tag_overlap_exclude_self_and_nonmatches(self):

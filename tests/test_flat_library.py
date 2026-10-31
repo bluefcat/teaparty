@@ -87,7 +87,7 @@ class FlatStorageTests(unittest.TestCase):
         self.assertEqual(record['id'],old['id'])
         self.assertIn('keep me',record['tags'])
         self.assertEqual(Path(record['path']).parent,storage.root)
-        self.assertEqual(json.loads(storage.registry_path.read_text())[str(original)],Path(record['path']).name)
+        self.assertEqual(json.loads(storage.registry_path.read_text())[str(original.resolve())],Path(record['path']).name)
         self.assertEqual(json.loads(storage.captions_path.read_text())[Path(record['path']).name],'archived_tag')
         # A repeated import must reuse the flattened managed filename.
         self.assertEqual(storage.import_folder(self.folder)['total'],1)

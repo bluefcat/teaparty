@@ -251,6 +251,10 @@ class Library:
         rows = self.snapshot(include_features=False) if rows is None else rows
         wanted = {normalize_tag(t) for t in tags if normalize_tag(t)}
         if folder:
+            # Scanner stores resolved absolute paths. Windows temporary folders may
+            # be supplied as 8.3 aliases (RUNNER~1), which compare differently
+            # unless the query is normalized too.
+            folder = str(Path(folder).expanduser().resolve())
             rows = [r for r in rows if is_under(r['path'], folder)]
         if wanted:
             rows = [r for r in rows if (bool(wanted.intersection(r['tags'])) if any_tag
@@ -423,9 +427,21 @@ class Library:
 
 
 def is_under(path, folder):
+    """Compare paths, accepting Windows short/long path aliases.
+
+    Most scanner paths are already resolved. Check those without hitting the
+    filesystem, then resolve only mismatches (e.g. RUNNER~1 vs runneradmin).
+    """
+    def within(item, parent):
+        item = os.path.normcase(os.path.abspath(item))
+        parent = os.path.normcase(os.path.abspath(parent))
+        return os.path.commonpath((item, parent)) == parent
+
     try:
-        return os.path.commonpath([os.path.normcase(path), os.path.normcase(folder)]) == os.path.normcase(folder)
-    except ValueError:
+        if within(path, folder):
+            return True
+        return within(os.path.realpath(path), os.path.realpath(folder))
+    except (ValueError, OSError):
         return False
 
 

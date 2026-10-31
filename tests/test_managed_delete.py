@@ -165,7 +165,7 @@ class ManagedDeletionTests(unittest.TestCase):
 
     def test_rejects_deletion_of_external_path(self):
         Scanner(self.library, self.tagger).run(self.original.parent)
-        outside = next(r for r in self.library.snapshot() if Path(r['path']) == self.original)
+        outside = next(r for r in self.library.snapshot() if Path(r['path']).resolve() == self.original.resolve())
         with self.assertRaises(ValueError):
             self.storage.delete_image(outside['id'], trash=self.trash)
         self.assertTrue(self.original.exists())
