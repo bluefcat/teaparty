@@ -1,0 +1,11 @@
+# TEA PARTY: single dependency list for Windows (Python 3.11-3.13, 64-bit).
+# teaparty.bat installs the appropriate CPU/CUDA PyTorch build first.
+# Use teaparty.bat instead of running `pip install -r` for automatic GPU setup.
+Pillow>=10.0,<13
+numpy>=1.26,<3
+torch==2.11.0
+torchvision==0.26.0
+timm==0.9.16
+einops>=0.7,<1
+tqdm>=4.66,<5
+Send2Trash[nativeLib]>=2.1,<3

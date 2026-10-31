@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>TEA PARTY · 이미지 라이브러리</title>
+  <link rel="stylesheet" href="/style.css">
+  <meta name="mori-token" content="%%MORI_TOKEN%%">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand" id="brand-home"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.8 18.5h26l-2.7 8.2c-1.7 5.1-5.8 8.2-10.3 8.2s-8.6-3.1-10.2-8.2l-2.8-8.2Z"/><path d="M31.8 20.5h2.5c4 0 6.4 2.8 5.2 6.4-.9 2.6-3 4.1-6.2 4.1M10 38h22"/><path d="M19.5 16c-1.5-3.7-.8-7.8 3.1-10.6 2.7 4.2.9 8.3-3.1 10.6ZM19.4 15.7c-3.5-1.3-5.8-3.7-5.6-7.6 3.3.4 5.3 2.9 5.6 7.6Z"/></svg></span><div><strong>TEA PARTY</strong><small>IMAGE LIBRARY</small></div></div>
+      <div class="side-section-label">WORKSPACE</div>
+      <nav class="nav-group" aria-label="주 메뉴">
+        <button class="nav-item active" data-nav="library" aria-label="라이브러리" title="라이브러리"><span class="nav-icon" data-icon="gallery"></span>라이브러리</button>
+        <button class="nav-item" data-nav="colors" aria-label="색상 검색" title="색상 검색"><span class="nav-icon" data-icon="palette"></span>색상 검색</button>
+        <button class="nav-item" data-nav="history" aria-label="분석 기록" title="분석 기록"><span class="nav-icon" data-icon="history"></span>분석 기록</button>
+      </nav>
+      <div class="side-section-label second">HISTORY</div>
+      <div class="side-history" id="sideHistory" aria-label="최근 열어본 이미지"></div>
+      <div class="sidebar-spacer"></div>
+      <div class="library-stats">
+        <div class="stats-icon">✦</div>
+        <div class="stat-name">나의 컬렉션</div>
+        <div class="stat-number"><strong id="sideCount">0</strong><span>장의 이미지</span></div>
+        <div class="stat-rule"></div>
+        <div class="stat-caption">프로그램 내부 저장소</div>
+      </div>
+      <button class="sidebar-setting" id="sideSettings" aria-label="설정" title="설정"><span data-icon="settings"></span> 설정 <span class="setting-arrow">↗</span></button>
+    </aside>
+
+    <main class="main-area">
+      <div class="topbar">
+        <div class="search-shell">
+          <select id="mode" aria-label="검색 모드"><option value="tag">태그 검색</option><option value="natural">자연어 검색</option></select>
+          <input id="searchInput" type="search" placeholder="태그로 찾아보세요. 예: 1girl, blue eyes" autocomplete="off">
+          <button class="search-button" id="searchButton"><span data-icon="search"></span> 검색</button>
+        </div>
+        <button class="outline-button" id="addFolder"><span data-icon="plus"></span> 폴더 추가</button>
+        <button class="outline-button" id="addImage"><span data-icon="gallery"></span> 이미지 추가</button>
+        <input type="file" id="imageFileInput" accept="image/jpeg,image/png,image/webp,image/bmp,image/gif,image/tiff" hidden aria-label="단일 이미지 파일 선택">
+        <button class="icon-button" id="topSettings" title="설정" aria-label="설정"><span data-icon="settings"></span></button>
+      </div>
+      <div class="content-header" id="contentHeader">
+        <div>
+          <div class="eyebrow"><span class="tiny-sprout">✳</span></div>
+          <div class="page-title-row"><h1 id="pageTitle">이미지 라이브러리</h1><span class="count-label" id="resultCount">0 IMAGES</span></div>
+          <p class="page-subtitle" id="pageSubtitle"></p>
+        </div>
+        <div class="header-actions"><button class="light-button" id="refresh" title="다시 스캔"><span data-icon="refresh"></span></button></div>
+      </div>
+      <div class="filterbar" id="filterbar">
+        <div class="active-filters" id="activeFilters"><span class="soft-hint">관심 있는 태그나 색으로 검색해 보세요</span></div>
+        <button class="minimal-button" id="resetFilters"><span data-icon="rotate"></span> 초기화</button>
+        <div class="filters-spacer"></div>
+        <label class="result-word" id="resultWord">전체 이미지</label>
+        <select id="sortOrder" aria-label="정렬"><option value="newest">등록일 (최신순)</option><option value="oldest">등록일 (오래된순)</option><option value="name">이름순</option><option value="largest">크기순</option></select>
+        <button class="export-button" id="exportButton"><span data-icon="download"></span> JSON 내보내기</button>
+      </div>
+      <section class="gallery-wrap" id="gallerySection" aria-label="이미지 갤러리">
+        <div class="masonry" id="gallery"></div>
+        <div class="empty" id="emptyState" hidden>
+          <div class="empty-illustration"><span data-icon="gallery"></span><i>✳</i></div>
+          <h2 id="emptyTitle">여기에 이미지가 없습니다</h2>
+          <p id="emptyDescription">폴더를 추가하고 이미지를 분석하면 이곳에 컬렉션이 만들어집니다.</p>
+          <button class="primary-button" id="emptyAction"><span data-icon="plus"></span> 폴더 추가하기</button>
+        </div>
+        <div class="load-sentinel" id="loadSentinel"></div>
+      </section>
+  <section class="detail-page" id="detailModal" hidden>
+    <div class="detail-dialog" aria-labelledby="detailName">
+      <div class="detail-photo-area"><div class="photo-count" id="detailPosition">IMAGE DETAILS</div><div class="detail-image-placeholder" id="detailPlaceholder" role="status" aria-label="이미지를 불러오는 중" aria-live="polite"><svg class="tea-loader" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle class="tea-loader-rim" cx="54" cy="60" r="38"/><path class="tea-loader-handle" d="M92 50h8a10 10 0 0 1 0 20h-8"/><circle class="tea-loader-swirl" cx="54" cy="60" r="25" pathLength="100"/></svg></div><img id="detailImage" alt="" hidden><button id="prevImage" class="image-arrow prev" aria-label="이전 이미지"><span data-icon="arrow-left"></span></button><button id="nextImage" class="image-arrow next" aria-label="다음 이미지"><span data-icon="arrow-right"></span></button></div>
+      <div class="detail-content"><h2 id="detailName"></h2><div class="detail-meta" id="detailMeta"></div><div class="detail-rule"></div><div class="detail-label"><span>이미지 태그</span><small id="detailTagCount"></small></div><div class="detail-tag-list" id="detailTags"></div><div class="detail-tag-input"><input id="newTags" placeholder="태그 추가하기 (쉼표로 구분)"><button id="addTags">+ 태그 추가</button></div><div class="detail-actions"><button id="openOriginal" class="outline-button"><span data-icon="external"></span> 원본 열기</button><button id="openLocation" class="outline-button"><span data-icon="folder"></span> 파일 위치</button><button id="sameHash" class="outline-button"><span data-icon="layers"></span> 같은 해시</button></div><div class="danger-strip"><span id="detailStatus"></span><button id="deleteImage"><span data-icon="trash"></span> 이미지 삭제</button></div></div>
+    </div>
+    <section class="detail-related" aria-labelledby="relatedHeading">
+      <div class="related-heading"><div><span class="eyebrow">DISCOVER MORE</span><h2 id="relatedHeading">태그가 비슷한 이미지 <small id="similarCount"></small></h2><p>이 이미지와 공통 태그가 있는 작품입니다. 아래로 스크롤하며 살펴보세요.</p></div><button id="seeSimilar" class="outline-button">관련 이미지 모두 보기</button></div>
+      <div class="related-masonry" id="similarGrid"></div>
+    </section>
+  </section>
+
+      <div class="content-footer" id="contentFooter"><span>✳ 이미지와 태그는 이 컴퓨터에서 관리됩니다.</span><span>TEA PARTY · MADE FOR YOUR COLLECTION</span></div>
+    </main>
+  </div>
+
+  <div id="colorOverlay" class="scrim" hidden></div>
+  <aside class="color-drawer" id="colorDrawer" aria-label="색상으로 찾기" aria-hidden="true">
+    <div class="drawer-top"><div><span class="eyebrow">COLOR DISCOVERY</span><h2>색상으로 찾기</h2><p>이미지 속 색을 직접 그려 찾아보세요.</p></div><button class="icon-button" data-close="color" aria-label="닫기"><span data-icon="x"></span></button></div>
+    <div class="section-heading"><span>01</span> 원하는 색상 고르기</div>
+    <div class="wheel-row">
+      <canvas class="color-wheel" id="colorWheel" width="240" height="240" role="img" aria-label="색상 고리와 채도·명도 삼각형. 고리는 색상을, 삼각형은 색의 선명함과 밝기를 조절합니다." tabindex="0"></canvas>
+      <div class="color-controls"><label>선택한 색상</label><div class="hex-row"><span class="chosen-swatch" id="chosenSwatch"></span><input id="hexInput" maxlength="7" value="#E8A5C8" aria-label="선택한 색상 HEX"></div><small>휠을 클릭하거나 HEX 값을 입력하세요</small><div class="quick-palette" id="quickPalette"></div></div>
+    </div>
+    <div class="section-heading"><span>02</span> 색상 배치 그리기 <button class="text-link" id="clearColors">모두 지우기</button></div>
+    <p class="section-desc">8 × 8 캔버스에서 원하는 위치를 칠하세요.</p>
+    <div class="paint-grid" id="paintGrid" aria-label="색상 위치 캔버스"></div>
+    <div class="tool-row"><button id="drawTool" class="tool-option selected"><span data-icon="pencil"></span> 그리기</button><button id="eraseTool" class="tool-option"><span data-icon="eraser"></span> 지우개</button><span class="drawn-cells" id="drawnCells">0칸 선택됨</span></div>
+    <div class="section-heading"><span>03</span> 검색 정밀도</div>
+    <div class="tolerance-caption"><label for="tolerance">색상 허용 오차</label><strong id="toleranceValue">35</strong></div>
+    <input id="tolerance" type="range" min="5" max="100" value="35" step="1">
+    <div class="tolerance-ends"><span>정확하게</span><span>넓게 찾기</span></div>
+    <div class="drawer-actions"><button class="outline-button" id="colorOnlyButton">색상만 검색</button><button class="primary-button" id="applyColors"><span data-icon="search"></span> 색상 + 태그 검색</button></div>
+  </aside>
+
+  <div class="modal-backdrop" id="settingsModal" hidden><div class="settings-dialog" role="dialog" aria-modal="true" aria-labelledby="settingsTitle"><div class="modal-heading"><div><div class="eyebrow">PREFERENCES</div><h2 id="settingsTitle">모델 및 검색 설정</h2></div><button class="icon-button" data-close="settings"><span data-icon="x"></span></button></div><div class="settings-body"><div class="settings-section">로컬 이미지 분석 <span>MODEL CONFIGURATION</span></div><div class="field full"><label for="setCheckpoint">체크포인트 (.ckpt)</label><input id="setCheckpoint"></div><div class="settings-grid"><div class="field"><label for="setArchitecture">모델 구조</label><select id="setArchitecture"><option value="caformer_m36">CAFormer M36</option><option value="tresnet_d">TResNet D</option></select></div><div class="field"><label for="setThreshold">태그 확률 기준</label><input id="setThreshold" type="number" min="0.01" max="0.99" step="0.01"></div><div class="field"><label for="setDevice">분석 장치</label><select id="setDevice"><option value="auto">자동 선택</option><option value="cuda">GPU (CUDA)</option><option value="cpu">CPU</option></select></div><div class="field"><label for="setBatch">동시 분석 수</label><select id="setBatch"><option value="auto">자동 측정</option><option value="1">1</option><option value="2">2</option><option value="4">4</option><option value="8">8</option><option value="16">16</option><option value="32">32</option><option value="64">64</option><option value="128">128</option></select></div></div><label class="check-line"><input type="checkbox" id="setUseJson"><span>기존 image_captions.json 태그 우선 사용</span></label><div class="settings-section">자연어 검색 <span>OPTIONAL API</span></div><div class="settings-grid"><div class="field"><label for="setBaseUrl">API Base URL</label><input id="setBaseUrl"></div><div class="field"><label for="setApiModel">API 모델 이름</label><input id="setApiModel" placeholder="예: gpt-4o-mini"></div></div><div class="field full"><label for="setApiKey">API 키 (현재 실행에서만 사용)</label><input id="setApiKey" type="password" placeholder="변경할 경우에만 입력"></div><div class="settings-note">이미지 원본과 파일 경로는 외부 API에 전송하지 않습니다. 자연어 검색 문장과 등록된 태그 목록만 전송합니다. 분석 설정은 다음 스캔부터 적용됩니다.</div></div><div class="modal-footer"><button class="outline-button" data-close="settings">취소</button><button class="primary-button" id="saveSettings">설정 저장</button></div></div></div>
+
+  <div class="modal-backdrop" id="logModal" hidden><div class="log-dialog" role="dialog" aria-modal="true" aria-labelledby="logTitle"><div class="modal-heading"><div><div class="eyebrow">PROCESSING ACTIVITY</div><h2 id="logTitle">분석 기록</h2></div><button class="icon-button" data-close="log"><span data-icon="x"></span></button></div><div class="log-body" id="logBody"></div><div class="modal-footer"><button class="outline-button" data-close="log">닫기</button></div></div></div>
+
+  <div class="modal-backdrop" id="folderModal" hidden><div class="folder-dialog" role="dialog" aria-modal="true" aria-labelledby="folderTitle"><div class="modal-heading"><div><div class="eyebrow">ADD IMAGES</div><h2 id="folderTitle">폴더에서 이미지 가져오기</h2></div><button class="icon-button" data-close="folder"><span data-icon="x"></span></button></div><p>선택한 폴더와 하위 폴더의 이미지를 하나의 라이브러리로 가져옵니다. 프로그램 내부에 별도의 폴더를 만들지 않으며 원본은 그대로 유지됩니다.</p><button class="folder-picker" id="chooseNativeFolder"><span data-icon="folder"></span><span>Windows 폴더 선택 창 열기<small>또는 아래에 폴더 경로를 직접 입력하세요.</small></span><span>↗</span></button><div class="field full"><label for="manualFolder">폴더 경로</label><input id="manualFolder" placeholder="예: D:\Images\Illustration"></div><div class="modal-footer"><button class="outline-button" data-close="folder">취소</button><button class="primary-button" id="startFolderScan">폴더 분석 시작</button></div></div></div>
+
+  <div class="scan-card" id="scanCard" hidden><div class="scan-card-top"><div class="scan-icon"><span data-icon="folder"></span></div><div class="scan-heading"><strong id="scanTitle">폴더 분석 중</strong><small id="scanFolder">이미지를 준비하는 중…</small></div><button class="minimal-button" id="collapseScan" aria-label="분석 카드 접기">−</button><button class="scan-close" id="closeScan" aria-label="분석 완료 알림 닫기" title="닫기" hidden><span data-icon="x"></span></button></div><div class="scan-content" id="scanContent"><div class="scan-progress-label"><span id="scanCount">0 / 0 장</span><strong id="scanPercent">0%</strong></div><div class="progress-track"><div id="scanProgress"></div></div><div class="scan-times"><span id="scanElapsed">경과 시간 계산 중</span><span id="scanRemaining">남은 시간 계산 중</span></div><div class="scan-buttons"><button id="stopScan" class="outline-danger">중지</button><button id="openLog" class="outline-button">분석 로그</button></div></div></div>
+  <div class="toast-stack" id="toasts" aria-live="polite"></div>
+  <script src="/app.js" defer></script>
+</body>
+</html>

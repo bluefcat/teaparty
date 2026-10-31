@@ -1,0 +1,1 @@
+Place your existing model checkpoint here, e.g.TResnet-D-FLq_ema_6-30000.ckpt

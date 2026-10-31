@@ -1,0 +1,8 @@
+.venv/
+.venv-gpu/
+__pycache__/
+*.pyc
+data/
+samples/
+.pytest_cache/
+*.ckpt
