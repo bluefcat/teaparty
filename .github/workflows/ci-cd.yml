@@ -1,0 +1,152 @@
+name: TEA PARTY CI / CD
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - 'v*.*.*'
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: Tests (${{ matrix.os }}, Python ${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ['3.12']
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install CPU-only PyTorch
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install torch==2.11.0 torchvision==0.26.0 --index-url https://download.pytorch.org/whl/cpu
+
+      - name: Install project and test dependencies
+        run: |
+          python -m pip install -r requirements.txt "pytest>=8,<10"
+          python -m pip check
+
+      - name: Check Python syntax and launch options
+        run: |
+          python -m compileall -q image_library main.py setup_teaparty.py
+          python main.py --help
+
+      # These optional browser scripts require a separately provisioned Chromium
+      # and use a fixed /usr/bin/chromium executable path. The two older legacy
+      # test scripts target APIs removed from v11+ and cannot run unmodified.
+      - name: Run weight-free regression tests
+        run: >-
+          python -m pytest -q tests
+          --ignore=tests/test_browser_mock.py
+          --ignore=tests/test_flat_browser_smoke.py
+          --ignore=tests/test_sidebar_responsive.py
+          --ignore=tests/test_managed_import.py
+          --ignore=tests/test_mori_web_ui.py
+
+  release:
+    name: Publish source ZIP
+    needs: tests
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Package public source (no weights or user data)
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          python - <<'PY'
+          import hashlib
+          import os
+          from pathlib import Path
+          import subprocess
+          from zipfile import ZipFile, ZIP_DEFLATED
+
+          tag = os.environ['RELEASE_TAG']
+          output = Path('dist')
+          output.mkdir(exist_ok=True)
+          archive = output / f'TEA_PARTY_{tag}.zip'
+
+          # Package only tracked application files, never checkpoints or
+          # personal library data even if they were force-added to Git.
+          root_files = {
+              'README.md', 'LICENSE', 'NOTICE', 'requirements.txt',
+              'main.py', 'teaparty.bat', 'setup_teaparty.py',
+          }
+          source_prefixes = ('image_library/', 'checkpoints/')
+          blocked_dirs = {'.git', '.venv', '.venv-gpu', '__pycache__', 'data', 'samples'}
+          blocked_extensions = {'.ckpt', '.pth', '.pt', '.safetensors', '.db', '.sqlite3', '.pyc'}
+          tracked = subprocess.check_output(['git', 'ls-files', '-z']).split(b'\0')
+          included = []
+          with ZipFile(archive, 'w', ZIP_DEFLATED, compresslevel=9) as zf:
+              for raw in tracked:
+                  if not raw:
+                      continue
+                  name = os.fsdecode(raw).replace('\\', '/')
+                  path = Path(name)
+                  if not (name in root_files or name.startswith(source_prefixes)):
+                      continue
+                  if any(part in blocked_dirs for part in path.parts):
+                      continue
+                  if path.suffix.lower() in blocked_extensions:
+                      continue
+                  if not path.is_file() or path.is_symlink():
+                      continue
+                  zf.write(path, f'TEA_PARTY/{name}')
+                  included.append(name)
+
+          for required in ('README.md', 'main.py', 'teaparty.bat', 'requirements.txt'):
+              if required not in included:
+                  raise SystemExit(f'Release is missing required file: {required}')
+          digest = hashlib.sha256(archive.read_bytes()).hexdigest()
+          checksum = output / f'{archive.name}.sha256'
+          checksum.write_text(f'{digest}  {archive.name}\n', encoding='utf-8')
+          print(f'Created {archive} ({len(included)} source files)')
+          print(f'SHA-256: {digest}')
+          PY
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          name: TEA PARTY ${{ github.ref_name }}
+          generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          fail_on_unmatched_files: true
+          files: |
+            dist/TEA_PARTY_*.zip
+            dist/TEA_PARTY_*.sha256
